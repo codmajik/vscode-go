@@ -13,7 +13,7 @@ import cp = require('child_process');
 import { showGoStatus, hideGoStatus } from './goStatus';
 import { getGoRuntimePath } from './goPath';
 import { outputChannel } from './goStatus';
-import { getBinPath, getGoVersion, SemVersion, isVendorSupported } from './util';
+import { getBinPath, getToolsGopath, getGoVersion, SemVersion, isVendorSupported } from './util';
 
 let updatesDeclinedTools: string[] = [];
 
@@ -142,10 +142,10 @@ function installTools(goVersion: SemVersion, missing?: string[]) {
 
 	// If the go.toolsGopath is set, use
  	// its value as the GOPATH for the "go get" child process.
-	let goConfig = vscode.workspace.getConfiguration('go');
+	let toolsGopath = getToolsGopath();
 	let envWithSeparateGoPathForTools = null;
-	if (goConfig['toolsGopath']) {
-		envWithSeparateGoPathForTools = Object.assign({}, envForTools, {GOPATH: goConfig['toolsGopath']});
+	if (toolsGopath) {
+		envWithSeparateGoPathForTools = Object.assign({}, envForTools, {GOPATH: toolsGopath});
 	}
 
 	missing.reduce((res: Promise<string[]>, tool: string) => {
@@ -208,6 +208,17 @@ export function updateGoPathGoRootFromConfig() {
 	let gopath = vscode.workspace.getConfiguration('go')['gopath'];
 	if (gopath) {
 		process.env['GOPATH'] = gopath.replace(/\${workspaceRoot}/g, vscode.workspace.rootPath);
+	}
+
+	let inferGoPath = vscode.workspace.getConfiguration('go')['inferGopath'];
+	if (inferGoPath) {
+		let dirs = vscode.workspace.rootPath.toLowerCase().split(path.sep);
+		// find src directory closest to workspace root
+		let srcIdx = dirs.lastIndexOf('src');
+
+		if (srcIdx > 0) {
+			process.env['GOPATH'] = vscode.workspace.rootPath.substr(0, dirs.slice(0, srcIdx).join(path.sep).length);
+		}
 	}
 }
 

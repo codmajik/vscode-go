@@ -174,8 +174,8 @@
             "properties": {
               "program": {
                 "type": "string",
-                "description": "Workspace relative path to the program folder (or any file within that folder) when in 'debug' or 'test' mode, and to the pre-built binary file to debug in 'exec' mode.",
-                "default": "."
+                "description": "Path to the program folder (or any file within that folder) when in 'debug' or 'test' mode, and to the pre-built binary file to debug in 'exec' mode.",
+                "default": "${workspaceRoot}"
               },
               "mode": {
                 "enum": [
@@ -337,13 +337,18 @@
           "default": false,
           "description": "Complete functions with their parameter signature"
         },
+        "go.inferGopath": {
+          "type": "boolean",
+          "default": false,
+          "description": "Infer GOPATH from the workspace root."
+        },
         "go.gopath": {
           "type": [
             "string",
             "null"
           ],
           "default": null,
-          "description": "Specifies the GOPATH to use when no environment variable is set."
+          "description": "Specifies the GOPATH to use when no environment variable is set. The inferred GOPATH from workspace root overrides this, if go.inferGopath is set to true."
         },
         "go.goroot": {
           "type": [
