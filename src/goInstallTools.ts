@@ -200,24 +200,30 @@ function installTools(goVersion: SemVersion, missing?: string[]) {
 }
 
 export function updateGoPathGoRootFromConfig() {
-	let goroot = vscode.workspace.getConfiguration('go')['goroot'];
+	const config = vscode.workspace.getConfiguration('go');
+
+	let goroot = config['goroot'];
 	if (goroot) {
 		process.env['GOROOT'] = goroot;
 	}
 
-	let gopath = vscode.workspace.getConfiguration('go')['gopath'];
+	let gopath = config['gopath'];
 	if (gopath) {
 		process.env['GOPATH'] = gopath.replace(/\${workspaceRoot}/g, vscode.workspace.rootPath);
 	}
 
-	let inferGoPath = vscode.workspace.getConfiguration('go')['inferGopath'];
+	let inferGoPath = config['inferGopath']
 	if (inferGoPath) {
-		let dirs = vscode.workspace.rootPath.toLowerCase().split(path.sep);
-		// find src directory closest to workspace root
-		let srcIdx = dirs.lastIndexOf('src');
+		let {workspaceValue} = config.inspect('gopath');
+		let infer = config.inspect('inferGopath');
+		if (infer.workspaceValue || (infer.globalValue && !workspaceValue)) {
+			let dirs = vscode.workspace.rootPath.toLowerCase().split(path.sep);
+			// find src directory closest to workspace root
+			let srcIdx = dirs.lastIndexOf('src');
 
-		if (srcIdx > 0) {
-			process.env['GOPATH'] = vscode.workspace.rootPath.substr(0, dirs.slice(0, srcIdx).join(path.sep).length);
+			if (srcIdx > 0) {
+				process.env['GOPATH'] = vscode.workspace.rootPath.substr(0, dirs.slice(0, srcIdx).join(path.sep).length);
+			}
 		}
 	}
 }
